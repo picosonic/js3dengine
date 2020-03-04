@@ -129,7 +129,7 @@ class engine3D
     this.ctx.strokeStyle="rgba(255,255,255,1)";
     this.ctx.lineWidth=1;
 
-    // timstamp for start of render
+    // Timestamp for start of render
     this.starttime=null;
 
     this.meshcube=new mesh();
@@ -178,15 +178,14 @@ class engine3D
   }
 
   // Draw triangle
-  drawtriangle(x1, y1, x2, y2, x3, y3)
+  drawtriangle(tri)
   {
     this.ctx.beginPath();
 
-    this.ctx.lineTo(x1, y1);
-    this.ctx.lineTo(x2, y2);
-    this.ctx.lineTo(x3, y3);
+    for (var j=0; j<3; j++)
+      this.ctx.lineTo(tri.p[j].x, tri.p[j].y);
 
-    this.ctx.lineTo(x1, y1);
+    this.ctx.lineTo(tri.p[0].x, tri.p[0].y);
 
     this.ctx.stroke();
   }
@@ -264,7 +263,7 @@ class engine3D
       triprojected.p[2].y*=ymax/2;
 
       // Rasterise triangle
-      this.drawtriangle(triprojected.p[0].x, triprojected.p[0].y, triprojected.p[1].x, triprojected.p[1].y, triprojected.p[2].x, triprojected.p[2].y);
+      this.drawtriangle(triprojected);
     }
 
     // Ask to be called again on the next frame
