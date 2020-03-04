@@ -1,0 +1,29 @@
+body
+{
+  overflow:hidden;
+  background:#000;
+}
+
+#wrapper
+{
+  position:absolute;
+  left:0px;
+  top:0px;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+}
+
+#canvas
+{
+  position:absolute;
+  background:#000;
+  left:0px;
+  top:0px;
+  width:1280px;
+  height:720px;
+
+  padding:0px;
+  margin:0px;
+  overflow:hidden;
+}
