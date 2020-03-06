@@ -413,6 +413,33 @@ class engine3D
     return matrix;
   }
 
+  Matrix_PointAt(pos, target, up)
+  {
+    // Calculate new forward direction
+    var newForward=Vector_Sub(target, pos);
+    newForward=Vector_Normalise(newForward);
+
+    // Calculate new Up direction
+    var a=Vector_Mul(newForward, Vector_DotProduct(up, newForward));
+    var newUp=Vector_Sub(up, a);
+    newUp=Vector_Normalise(newUp);
+
+    // New Right direction is easy, its just cross product
+    var newRight=Vector_CrossProduct(newUp, newForward);
+
+    // Construct Dimensioning and Translation Matrix	
+    var matrix=new mat4x4();
+
+    matrix.set(0, 0, newRight.x);   matrix.set(0, 1, newRight.y);   matrix.set(0, 2, newRight.z);   matrix.set(0, 3, 0);
+    matrix.set(1, 0, newUp.x);      matrix.set(1, 1, newUp.y);      matrix.set(1, 2, newUp.z);      matrix.set(1, 3, 0);
+    matrix.set(2, 0, newForward.x); matrix.set(2, 1, newForward.y); matrix.set(2, 2, newForward.z); matrix.set(2, 3, 0);
+    matrix.set(3, 0, pos.x);        matrix.set(3, 1, pos.y);        matrix.set(3, 2, pos.z);        matrix.set(3, 3, 1);
+
+    return matrix;
+  }
+
+// TODO
+
 // old matrix below
 
   // Matrix vector multiplication from input triangle to output triangle using 4x4 matrix
