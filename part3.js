@@ -438,6 +438,84 @@ class engine3D
     return matrix;
   }
 
+  Matrix_QuickInverse(m) // Only for Rotation/Translation Matrices
+  {
+    var matrix=new mat4x4();
+
+    matrix.set(0, 0, m.get(0, 0)); matrix.set(0, 1, m.get(1, 0)); matrix.set(0, 2, m.get(2, 0)); matrix.set(0, 3, 0);
+    matrix.set(1, 0, m.get(0, 1)); matrix.set(1, 1, m.get(1, 1)); matrix.set(1, 2, m.get(2, 1)); matrix.set(1, 3, 0);
+    matrix.set(2, 0, m.get(0, 2)); matrix.set(2, 1, m.get(1, 2)); matrix.set(2, 2, m.get(2, 2)); matrix.set(2, 3, 0);
+
+    matrix.set(3, 0, (-m.get(3, 0) * matrix.get(0, 0)) + (m.get(3, 1) * matrix.get(1, 0)) + (m.get(3, 2) * matrix.get(2, 0)));
+    matrix.set(3, 1, (-m.get(3, 0) * matrix.get(0, 1)) + (m.get(3, 1) * matrix.get(1, 1)) + (m.get(3, 2) * matrix.get(2, 1)));
+    matrix.set(3, 2, (-m.get(3, 0) * matrix.get(0, 2)) + (m.get(3, 1) * matrix.get(1, 2)) + (m.get(3, 2) * matrix.get(2, 2)));
+    matrix.set(3, 3, 1);
+
+    return matrix;
+  }
+
+  Vector_Add(v1, v2)
+  {
+    return new vec3d(v1.x+v2.x, v1.y+v2.y, v1.z+v2.z);
+  }
+
+
+  Vector_Sub(v1, v2)
+  {
+    return new vec3d(v1.x-v2.x, v1.y-v2.y, v1.z-v2.z);
+  }
+
+  Vector_Mul(v1, k)
+  {
+    return new vec3d(v1.x*k, v1.y*k, v1.z*k);
+  }
+
+  Vector_Div(v1, k)
+  {
+    return new vec3d(v1.x/k, v1.y/k, v1.z/k);
+  }
+
+  Vector_DotProduct(v1, v2)
+  {
+    return (v1.x*v2.x) + (v1.y*v2.y) + (v1.z*v2.z);
+  }
+
+  Vector_Length(v)
+  {
+    return Math.sqrt(this.Vector_DotProduct(v, v));
+  }
+
+  Vector_Normalise(v)
+  {
+    var l=this.Vector_Length(v);
+
+    return new vec3d(v.x/l, v.y/l, v.z/l);
+  }
+
+  Vector_CrossProduct(v1, v2)
+  {
+    var v=new vec3d();
+
+    v.x=(v1.y*v2.z) - (v1.z*v2.y);
+    v.y=(v1.z*v2.x) - (v1.x*v2.z);
+    v.z=(v1.x*v2.y) - (v1.y*v2.x);
+
+    return v;
+  }
+
+  Vector_IntersectPlane(plane_p, plane_n, lineStart, lineEnd)
+  {
+    var plane_n=this.Vector_Normalise(plane_n);
+    var plane_d=-this.Vector_DotProduct(plane_n, plane_p);
+    var ad=this.Vector_DotProduct(lineStart, plane_n);
+    var bd=this.Vector_DotProduct(lineEnd, plane_n);
+    var t=((-plane_d)-ad) / (bd-ad);
+    var lineStartToEnd=this.Vector_Sub(lineEnd, lineStart);
+    var lineToIntersect=this.Vector_Mul(lineStartToEnd, t);
+
+    return this.Vector_Add(lineStart, lineToIntersect);
+  }
+
 // TODO
 
 // old matrix below
