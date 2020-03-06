@@ -306,6 +306,72 @@ class engine3D
     window.requestAnimationFrame(this.drawframe.bind(this));
   }
 
+  Matrix_MultiplyVector(m, i)
+  {
+    var v=new vec3d(0, 0, 0);
+
+    v.x = (i.x*m.m[0][0]) + (i.y*m.m[1][0]) + (i.z*m.m[2][0]) + (i.w*m.m[3][0]);
+    v.y = (i.x*m.m[0][1]) + (i.y*m.m[1][1]) + (i.z*m.m[2][1]) + (i.w*m.m[3][1]);
+    v.z = (i.x*m.m[0][2]) + (i.y*m.m[1][2]) + (i.z*m.m[2][2]) + (i.w*m.m[3][2]);
+    v.w = (i.x*m.m[0][3]) + (i.y*m.m[1][3]) + (i.z*m.m[2][3]) + (i.w*m.m[3][3]);
+
+    return v;
+  }
+
+  Matrix_MakeIdentity()
+  {
+    var matrix=new mat4x4();
+
+    matrix.set(0, 0, 1);
+    matrix.set(1, 1, 1);
+    matrix.set(2, 2, 1);
+    matrix.set(3, 3, 1);
+
+    return matrix;
+  }
+
+  Matrix_MakeRotationX(fAngleRad)
+  {
+    var matrix=new mat4x4();
+
+    matrix.set(0, 0, 1);
+    matrix.set(1, 1, Math.cos(fAngleRad));
+    matrix.set(1, 2, Math.sin(fAngleRad));
+    matrix.set(2, 1, -Math.sin(fAngleRad));
+    matrix.set(2, 2, Math.cos(fAngleRad));
+    matrix.set(3, 3, 1);
+
+    return matrix;
+  }
+
+  Matrix_MakeRotationY(fAngleRad)
+  {
+    var matrix=new mat4x4();
+
+    matrix.set(0, 0, Math.cos(fAngleRad));
+    matrix.set(1, 1, Math.sin(fAngleRad));
+    matrix.set(1, 2, -Math.sin(fAngleRad));
+    matrix.set(2, 1, 1);
+    matrix.set(2, 2, Math.cos(fAngleRad));
+    matrix.set(3, 3, 1);
+
+    return matrix;
+  }
+
+  Matrix_MakeRotationZ(fAngleRad)
+  {
+    var matrix=new mat4x4();
+
+    matrix.set(0, 0, Math.cos(fAngleRad));
+    matrix.set(1, 1, Math.sin(fAngleRad));
+    matrix.set(1, 2, -Math.sin(fAngleRad));
+    matrix.set(2, 1, Math.cos(fAngleRad));
+    matrix.set(2, 2, 1);
+    matrix.set(3, 3, 1);
+
+    return matrix;
+  }
+
   // Matrix vector multiplication from input triangle to output triangle using 4x4 matrix
   multiplymatrixvector(i, o, m)
   {
