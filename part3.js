@@ -372,6 +372,49 @@ class engine3D
     return matrix;
   }
 
+  Matrix_MakeTranslation(x, y, z)
+  {
+    var matrix=new mat4x4();
+
+    matrix.set(0, 0, 1);
+    matrix.set(1, 1, 1);
+    matrix.set(2, 2, 1);
+    matrix.set(3, 3, 1);
+    matrix.set(3, 0, x);
+    matrix.set(3, 1, y);
+    matrix.set(3, 2, z);
+
+    return matrix;
+  }
+
+  Matrix_MakeProjection(fFovDegrees, fAspectRatio, fNear, fFar)
+  {
+    var matrix=new mat4x4();
+    var fFovRad=1/Math.tan((fFovDegrees/2)/(180*Math.PI));
+
+    matrix.set(0, 0, fAspectRatio*fFovRad);
+    matrix.set(1, 1, fFovRad);
+    matrix.set(2, 2, fFar/(fFar-fNear));
+    matrix.set(3, 2, (-fFar * fNear) / (fFar - fNear));
+    matrix.set(2, 3, 1);
+    matrix.set(3, 3, 0);
+
+    return matrix;
+  }
+
+  Matrix_MultiplyMatrix(m1, m2)
+  {
+    var matrix=new mat4x4();
+
+    for (var c=0; c<4; c++)
+      for (var r=0; r<4; r++)
+        matrix.set(r, c, (m1.get(r, 0)*m2.get(0, c)) + (m1.get(r, 1)*m2.get(1, c)) + (m1.get(r, 2)*m2.get(2, c)) + (m1.get(r, 3)*m2.get(3, c)));
+
+    return matrix;
+  }
+
+// old matrix below
+
   // Matrix vector multiplication from input triangle to output triangle using 4x4 matrix
   multiplymatrixvector(i, o, m)
   {
