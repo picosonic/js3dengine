@@ -349,9 +349,9 @@ class engine3D
     var matrix=new mat4x4();
 
     matrix.set(0, 0, Math.cos(fAngleRad));
-    matrix.set(1, 1, Math.sin(fAngleRad));
-    matrix.set(1, 2, -Math.sin(fAngleRad));
-    matrix.set(2, 1, 1);
+    matrix.set(1, 2, Math.sin(fAngleRad));
+    matrix.set(2, 0, -Math.sin(fAngleRad));
+    matrix.set(1, 1, 1);
     matrix.set(2, 2, Math.cos(fAngleRad));
     matrix.set(3, 3, 1);
 
@@ -363,9 +363,9 @@ class engine3D
     var matrix=new mat4x4();
 
     matrix.set(0, 0, Math.cos(fAngleRad));
-    matrix.set(1, 1, Math.sin(fAngleRad));
-    matrix.set(1, 2, -Math.sin(fAngleRad));
-    matrix.set(2, 1, Math.cos(fAngleRad));
+    matrix.set(0, 1, Math.sin(fAngleRad));
+    matrix.set(1, 0, -Math.sin(fAngleRad));
+    matrix.set(1, 1, Math.cos(fAngleRad));
     matrix.set(2, 2, 1);
     matrix.set(3, 3, 1);
 
