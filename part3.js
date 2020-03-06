@@ -146,22 +146,14 @@ class engine3D
     this.starttime=null;
 
     this.meshcube=new mesh();
-    this.matproj=new mat4x4();
-
-    // Position camera in 3D space always 0,0,0
-    this.vcamera=new vec3d(0, 0, 0);
-    this.vlookdir=new vec3d(0, 0, 0);
-
-    this.theta=0;
-
-    this.matproj.set(0, 0, faspectratio*ffovrad);
-    this.matproj.set(1, 1, ffovrad);
-    this.matproj.set(2, 2, ffar/(ffar-fnear));
-    this.matproj.set(3, 2, (-ffar*fnear)/(ffar-fnear));
-    this.matproj.set(2, 3, 1);
-    this.matproj.set(3, 3, 0);
-
     this.meshcube.loadfromobject(teapot);
+
+    this.matproj=this.Matrix_MakeProjection(ffov, faspectratio, fnear, ffar);
+
+    this.vcamera=new vec3d(0, 0, 0); // Location of camera in world space
+    this.vlookdir=new vec3d(0, 0, 0); // Direction vector along the direction camera points
+    this.fyaw=0; // FPS camera rotation in XZ plane
+    this.ftheta=0; // Spins world transform
   }
 
   // Start engine running
@@ -193,114 +185,145 @@ class engine3D
     if (!this.starttime) this.starttime=timestamp;
     var progress=(timestamp-this.starttime)/5000;
 
-    // Clear screen
-    this.ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (!!(navigator.getGamepads))
+    {
+      gamepadscan();
 
-    // Set up rotation matrices
-    var matrotz=new mat4x4();
-    var matrotx=new mat4x4();
-    this.theta+=0.1;
-    this.theta%=(4*Math.PI);
+      this.vcamera.x += gamepadaxesval[2];
+      this.vcamera.y += gamepadaxesval[3];
+    }
 
-    // Rotation Z
-    matrotz.set(0, 0, Math.cos(this.theta));
-    matrotz.set(0, 1, Math.sin(this.theta));
-    matrotz.set(1, 0, -Math.sin(this.theta));
-    matrotz.set(1, 1, Math.cos(this.theta));
-    matrotz.set(2, 2, 1);
-    matrotz.set(3, 3, 1);
+    var vforward=this.Vector_Mul(this.vlookdir, gamepadaxesval[1]);
 
-    // Rotation X
-    matrotx.set(0, 0, 1);
-    matrotx.set(1, 1, Math.cos(this.theta/2));
-    matrotx.set(1, 2, Math.sin(this.theta/2));
-    matrotx.set(2, 1, -Math.sin(this.theta/2));
-    matrotx.set(2, 2, Math.cos(this.theta/2));
-    matrotx.set(3, 3, 1);
+    if (!!(navigator.getGamepads))
+    {
+      this.vcamera=this.Vector_Add(this.vcamera, vforward);
+      this.fyaw+=(gamepadaxesval[0]*0.01);
+    }
 
+    // Set up world transform matrices
+    var matrotz=this.Matrix_MakeRotationZ(this.ftheta*0.1);
+    var matrotx=this.Matrix_MakeRotationX(this.ftheta);
+
+    var mattrans=this.Matrix_MakeTranslation(0, 0, 50);
+
+    var matworld=this.Matrix_MakeIdentity(); // Form World Matrix
+    matworld=this.Matrix_MultiplyMatrix(matrotz, matrotx); // Transform by rotation
+    matworld=this.Matrix_MultiplyMatrix(matworld, mattrans); // Transform by translation
+
+    // Create "Point At" Matrix for camera
+    var vup=new vec3d(0, 1, 0);
+    var vtarget=new vec3d(0, 0, 1);
+    var matcamerarot=this.Matrix_MakeRotationY(this.fyaw);
+    this.vlookdir=this.Matrix_MultiplyVector(matcamerarot, vtarget);
+    this.vtarget=this.Vector_Add(this.vcamera, this.vlookdir);
+    var matcamera=this.Matrix_PointAt(this.vcamera, vtarget, vup);
+
+    // Make view matrix from camera
+    var matview=this.Matrix_QuickInverse(matcamera);
+
+    // Store triagles for rastering later
     var trianglestoraster=new Array();
 
     // Draw triangles
     for (var i=0; i<this.meshcube.len(); i++)
     {
-      var trirotatedz=new triangle();
-      var trirotatedzx=new triangle();
       var triprojected=new triangle();
+      var tritransformed=new triangle();
+      var triviewed=new triangle();
+
       var tritranslated;
       var tri=this.meshcube.get(i);
 
-      // Rotate in Z-Axis
-      this.multiplymatrixvector(tri.p[0], trirotatedz.p[0], matrotz);
-      this.multiplymatrixvector(tri.p[1], trirotatedz.p[1], matrotz);
-      this.multiplymatrixvector(tri.p[2], trirotatedz.p[2], matrotz);
+      tritransformed.p[0]=this.Matrix_MultiplyVector(matworld, tri.p[0]);
+      tritransformed.p[1]=this.Matrix_MultiplyVector(matworld, tri.p[1]);
+      tritransformed.p[2]=this.Matrix_MultiplyVector(matworld, tri.p[2]);
 
-      // Rotate in X-Axis
-      this.multiplymatrixvector(trirotatedz.p[0], trirotatedzx.p[0], matrotx);
-      this.multiplymatrixvector(trirotatedz.p[1], trirotatedzx.p[1], matrotx);
-      this.multiplymatrixvector(trirotatedz.p[2], trirotatedzx.p[2], matrotx);
+      // Calculate triangle normal
+      var line1=this.Vector_Sub(tritransformed.p[1], tritransformed.p[0]);
+      var line2=this.Vector_Sub(tritransformed.p[2], tritransformed.p[0]);
 
-      // Offset into the screen
-      tritranslated=deepclone(trirotatedzx);
-      tritranslated.p[0].z=trirotatedzx.p[0].z+50;
-      tritranslated.p[1].z=trirotatedzx.p[1].z+50;
-      tritranslated.p[2].z=trirotatedzx.p[2].z+50;
-
-      // Use cross product to get surface normal
-      var line1=new vec3d(tritranslated.p[1].x-tritranslated.p[0].x, tritranslated.p[1].y-tritranslated.p[0].y, tritranslated.p[1].z-tritranslated.p[0].z);
-      var line2=new vec3d(tritranslated.p[2].x-tritranslated.p[0].x, tritranslated.p[2].y-tritranslated.p[0].y, tritranslated.p[2].z-tritranslated.p[0].z);
-      var normal=new vec3d((line1.y*line2.z) - (line1.z*line2.y), (line1.z*line2.x) - (line1.x*line2.z), (line1.x*line2.y) - (line1.y*line2.x));
+      // Take cross product of lines to get normal to triangle surface
+      var normal=this.Vector_CrossProduct(line1, line2);
 
       // Normalise the normal (give it a length of 1)
-      var l=Math.sqrt((normal.x*normal.x) + (normal.y*normal.y) + (normal.z*normal.z));
-      normal.x/=l;
-      normal.y/=l;
-      normal.z/=l;
+      normal=this.Vector_Normalise(normal);
 
-      // Only render triangles which face viewer (using cross product)
-      if ((normal.x * (tritranslated.p[0].x - this.vcamera.x) + 
-           normal.y * (tritranslated.p[0].y - this.vcamera.y) +
-           normal.z * (tritranslated.p[0].z - this.vcamera.z)) < 0)
+      // Get Ray from triangle to camera
+      var vCameraRay=this.Vector_Sub(tritransformed.p[0], this.vcamera);
+
+      // If ray is aligned with normal, then triangle is visible
+      if (this.Vector_DotProduct(normal, vCameraRay) < 0)
       {
         // Illumination
-        var lightdir=new vec3d(0, -1, -1); // light comes from above
-        l=Math.sqrt((lightdir.x*lightdir.x) + (lightdir.y*lightdir.y) + (lightdir.z*lightdir.z));
-        lightdir.x/=l;
-        lightdir.y/=l;
-        lightdir.z/=l;
+        var lightdir=new vec3d(0, 1, -1); // light comes from above
+        lightdir=this.Vector_Normalise(lightdir);
 
         // Dot product between surface normal and light direction
-        var dp=(normal.x*lightdir.x) + (normal.y*lightdir.y) + (normal.z*lightdir.z);
-        var ambient=0.1; // 33% minimum light
-        var equiv=Math.round((ambient+dp)*255); if (equiv>255) equiv=255;
-        triprojected.shade="rgba("+equiv+","+equiv+","+equiv+",1)";
+        var dp=Math.max(0.1, this.Vector_DotProduct(lightdir, normal));
+        var equiv=dp*255;
 
-        // Project triangles from 3D --> 2D
-        this.multiplymatrixvector(tritranslated.p[0], triprojected.p[0], this.matproj);
-        this.multiplymatrixvector(tritranslated.p[1], triprojected.p[1], this.matproj);
-        this.multiplymatrixvector(tritranslated.p[2], triprojected.p[2], this.matproj);
+        // Convert World Space --> View Space
+        triviewed.p[0]=this.Matrix_MultiplyVector(matview, tritransformed.p[0]);
+        triviewed.p[1]=this.Matrix_MultiplyVector(matview, tritransformed.p[1]);
+        triviewed.p[2]=this.Matrix_MultiplyVector(matview, tritransformed.p[2]);
 
-        // Scale into view
-        triprojected.p[0].x+=1; triprojected.p[0].y+=1;
-        triprojected.p[1].x+=1; triprojected.p[1].y+=1;
-        triprojected.p[2].x+=1; triprojected.p[2].y+=1;
-        triprojected.p[0].x*=xmax/2;
-        triprojected.p[0].y*=ymax/2;
-        triprojected.p[1].x*=xmax/2;
-        triprojected.p[1].y*=ymax/2;
-        triprojected.p[2].x*=xmax/2;
-        triprojected.p[2].y*=ymax/2;
+        // Clip Viewed Triangle against near plane, this could form two additional triangles. 
+        var clipped=new Array(2);
+        var nClippedTriangles=this.Triangle_ClipAgainstPlane(new vec3d(0, 0, 0.1), new vec3d(0, 0, 1), triviewed, clipped);
 
-        // Store triangle for Z sorting
-        trianglestoraster.push(triprojected);
+        // We may end up with multiple triangles from the clip, so project as required
+        for (var  n=0; n<nClippedTriangles; n++)
+        {
+          // Project triangles from 3D --> 2D
+          triprojected.p[0]=this.Matrix_MultiplyVector(this.matproj, clipped[n].p[0]);
+          triprojected.p[1]=this.Matrix_MultiplyVector(this.matproj, clipped[n].p[1]);
+          triprojected.p[2]=this.Matrix_MultiplyVector(this.matproj, clipped[n].p[2]);
+
+          triprojected.shade="rgba("+equiv+","+equiv+","+equiv+",1)";
+
+          // Scale into view
+          triprojected.p[0]=this.Vector_Div(triprojected.p[0], triprojected.p[0].w);
+          triprojected.p[1]=this.Vector_Div(triprojected.p[1], triprojected.p[1].w);
+          triprojected.p[2]=this.Vector_Div(triprojected.p[2], triprojected.p[2].w);
+
+          // X/Y are inverted so put them back
+          triprojected.p[0].x*=-1; triprojected.p[0].y*=-1;
+          triprojected.p[1].x*=-1; triprojected.p[1].y*=-1;
+          triprojected.p[2].x*=-1; triprojected.p[2].y*=-1;
+
+          // Offset verts into visible normalised space
+          var voffsetview=new vec3d(1, 1, 0);
+          triprojected.p[0]=this.Vector_Add(triprojected.p[0], voffsetview);
+          triprojected.p[1]=this.Vector_Add(triprojected.p[1], voffsetview);
+          triprojected.p[2]=this.Vector_Add(triprojected.p[2], voffsetview);
+
+          triprojected.p[0].x*=xmax/2;
+          triprojected.p[0].y*=ymax/2;
+          triprojected.p[1].x*=xmax/2;
+          triprojected.p[1].y*=ymax/2;
+          triprojected.p[2].x*=xmax/2;
+          triprojected.p[2].y*=ymax/2;
+
+          // Store triangle for Z sorting
+          trianglestoraster.push(triprojected);
+        }
       }
     }
 
     // Sort triangles from back to front (using average Z value)
     trianglestoraster.sort(function(t1,t2){return ((t2.p[0].z+t2.p[1].z+t2.p[2].z)/3)-((t1.p[0].z+t1.p[1].z+t1.p[2].z)/3)});
 
-    // Rasterise sorted visible triangles
+    // Clear screen
+    this.ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Rasterise transformed, viewed, projected and sorted visible triangles
     for (var i=0; i<trianglestoraster.length; i++)
+    {
+      // Clip triangles against all four screen edges
+// TODO
       this.drawtriangle(trianglestoraster[i]);
+    }
 
     // Ask to be called again on the next frame
     window.requestAnimationFrame(this.drawframe.bind(this));
@@ -310,10 +333,10 @@ class engine3D
   {
     var v=new vec3d(0, 0, 0);
 
-    v.x = (i.x*m.m[0][0]) + (i.y*m.m[1][0]) + (i.z*m.m[2][0]) + (i.w*m.m[3][0]);
-    v.y = (i.x*m.m[0][1]) + (i.y*m.m[1][1]) + (i.z*m.m[2][1]) + (i.w*m.m[3][1]);
-    v.z = (i.x*m.m[0][2]) + (i.y*m.m[1][2]) + (i.z*m.m[2][2]) + (i.w*m.m[3][2]);
-    v.w = (i.x*m.m[0][3]) + (i.y*m.m[1][3]) + (i.z*m.m[2][3]) + (i.w*m.m[3][3]);
+    v.x = (i.x*m.get(0, 0)) + (i.y*m.get(1, 0)) + (i.z*m.get(2, 0)) + (i.w*m.get(3, 0));
+    v.y = (i.x*m.get(0, 1)) + (i.y*m.get(1, 1)) + (i.z*m.get(2, 1)) + (i.w*m.get(3, 1));
+    v.z = (i.x*m.get(0, 2)) + (i.y*m.get(1, 2)) + (i.z*m.get(2, 2)) + (i.w*m.get(3, 2));
+    v.w = (i.x*m.get(0, 3)) + (i.y*m.get(1, 3)) + (i.z*m.get(2, 3)) + (i.w*m.get(3, 3));
 
     return v;
   }
@@ -416,16 +439,16 @@ class engine3D
   Matrix_PointAt(pos, target, up)
   {
     // Calculate new forward direction
-    var newForward=Vector_Sub(target, pos);
-    newForward=Vector_Normalise(newForward);
+    var newForward=this.Vector_Sub(target, pos);
+    newForward=this.Vector_Normalise(newForward);
 
     // Calculate new Up direction
-    var a=Vector_Mul(newForward, Vector_DotProduct(up, newForward));
-    var newUp=Vector_Sub(up, a);
-    newUp=Vector_Normalise(newUp);
+    var a=this.Vector_Mul(newForward, this.Vector_DotProduct(up, newForward));
+    var newUp=this.Vector_Sub(up, a);
+    newUp=this.Vector_Normalise(newUp);
 
     // New Right direction is easy, its just cross product
-    var newRight=Vector_CrossProduct(newUp, newForward);
+    var newRight=this.Vector_CrossProduct(newUp, newForward);
 
     // Construct Dimensioning and Translation Matrix	
     var matrix=new mat4x4();
@@ -516,27 +539,115 @@ class engine3D
     return this.Vector_Add(lineStart, lineToIntersect);
   }
 
-// TODO
-
-// old matrix below
-
-  // Matrix vector multiplication from input triangle to output triangle using 4x4 matrix
-  multiplymatrixvector(i, o, m)
+  Triangle_ClipAgainstPlane(plane_p, plane_n, in_tri, out_tri)
   {
-    o.x = i.x * m.get(0, 0) + i.y * m.get(1, 0) + i.z * m.get(2, 0) + m.get(3, 0);
-    o.y = i.x * m.get(0, 1) + i.y * m.get(1, 1) + i.z * m.get(2, 1) + m.get(3, 1);
-    o.z = i.x * m.get(0, 2) + i.y * m.get(1, 2) + i.z * m.get(2, 2) + m.get(3, 2);
+    var that=this;
 
-    // Fourth element for 4x4 matrix
-    var w = i.x * m.get(0, 3) + i.y * m.get(1, 3) + i.z * m.get(2, 3) + m.get(3, 3);
+    // Make sure plane normal is indeed normal
+    plane_n=this.Vector_Normalise(plane_n);
 
-    // Convert from 4D to 3D cartesian coordinates when w is not 0
-    if (w!=0)
+    // Return signed shortest distance from point to plane, plane normal must be normalised
+    var dist=function(p)
     {
-      o.x/=w;
-      o.y/=w;
-      o.z/=w;
+      var n=that.Vector_Normalise(p);
+
+      return ((plane_n.x*p.x) + (plane_n.y*p.y) + (plane_n.z*p.z) - that.Vector_DotProduct(plane_n, plane_p));
+    };
+
+    // Create two temporary storage arrays to classify points either side of plane
+    // If distance sign is positive, point lies on "inside" of plane
+    var inside_points=new Array(3);  var nInsidePointCount=0;
+    var outside_points=new Array(3); var nOutsidePointCount=0;
+
+    // Get signed distance of each point in triangle to plane
+    var d0=dist(in_tri.p[0]);
+    var d1=dist(in_tri.p[1]);
+    var d2=dist(in_tri.p[2]);
+
+    if (d0>=0)
+      inside_points[nInsidePointCount++]=in_tri.p[0];
+    else
+      outside_points[nOutsidePointCount++]=in_tri.p[0];
+
+    if (d1>=0)
+      inside_points[nInsidePointCount++]=in_tri.p[1];
+    else
+      outside_points[nOutsidePointCount++]=in_tri.p[1];
+
+    if (d2>=0)
+      inside_points[nInsidePointCount++]=in_tri.p[2];
+    else
+      outside_points[nOutsidePointCount++]=in_tri.p[2];
+
+    // Now classify triangle points, and break the input triangle into smaller output triangles if required
+
+    if (nInsidePointCount==0)
+    {
+      // All points lie on the outside of plane, so clip whole triangle
+      // It ceases to exist
+
+      return 0; // No returned triangles are valid
     }
+
+    if (nInsidePointCount==3)
+    {
+      // All points lie on the inside of plane, so do nothing
+      // and allow the triangle to simply pass through
+      out_tri[0]=in_tri;
+
+      return 1; // Just the one returned original triangle is valid
+    }
+
+    if ((nInsidePointCount==1) && (nOutsidePointCount==2))
+    {
+      // Triangle should be clipped. As two points lie outside
+      // the plane, the triangle simply becomes a smaller triangle
+      out_tri[0]=in_tri;
+
+      // Copy appearance info to new triangle
+      out_tri[0].shade=in_tri.shade;
+
+      // The inside point is valid, so keep that...
+      out_tri[0].p[0]=inside_points[0];
+
+      // but the two new points are at the locations where the
+      // original sides of the triangle (lines) intersect with the plane
+      out_tri[0].p[1]=this.Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[0]);
+      out_tri[0].p[2]=this.Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[1]);
+
+      return 1; // Return the newly formed single triangle
+    }
+
+    if ((nInsidePointCount==2) && (nOutsidePointCount==1))
+    {
+      // Triangle should be clipped. As two points lie inside the plane,
+      // the clipped triangle becomes a "quad". Fortunately, we can
+      // represent a quad with two new triangles
+      out_tri[0]=in_tri;
+      out_tri[1]=in_tri;
+
+      // Copy appearance info to new triangles
+      out_tri[0].shade=in_tri.shade;
+      out_tri[1].shade=in_tri.shade;
+      
+      // The first triangle consists of the two inside points and a new
+      // point determined by the location where one side of the triangle
+      // intersects with the plane
+      out_tri[0].p[0]=inside_points[0];
+      out_tri[0].p[1]=inside_points[1];
+      out_tri[0].p[2]=this.Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[0]);
+
+      // The second triangle is composed of one of he inside points, a
+      // new point determined by the intersection of the other side of the 
+      // triangle and the plane, and the newly created point above
+      out_tri[1].p[0]=inside_points[1];
+      out_tri[1].p[1]=out_tri[0].p[2];
+      out_tri[1].p[2]=this.Vector_IntersectPlane(plane_p, plane_n, inside_points[1], outside_points[0]);
+
+      return 2; // Return two newly formed triangles which form a quad
+    }
+
+    return 0;
   }
 }
 
