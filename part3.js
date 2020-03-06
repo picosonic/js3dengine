@@ -161,7 +161,7 @@ class engine3D
     this.matproj.set(2, 3, 1);
     this.matproj.set(3, 3, 0);
 
-    this.meshcube.loadfromobject(mountains);
+    this.meshcube.loadfromobject(teapot);
   }
 
   // Start engine running
@@ -199,7 +199,7 @@ class engine3D
     // Set up rotation matrices
     var matrotz=new mat4x4();
     var matrotx=new mat4x4();
-    this.theta+=0.05;
+    this.theta+=0.1;
     this.theta%=(4*Math.PI);
 
     // Rotation Z
@@ -241,9 +241,9 @@ class engine3D
 
       // Offset into the screen
       tritranslated=deepclone(trirotatedzx);
-      tritranslated.p[0].z=trirotatedzx.p[0].z+750;
-      tritranslated.p[1].z=trirotatedzx.p[1].z+750;
-      tritranslated.p[2].z=trirotatedzx.p[2].z+750;
+      tritranslated.p[0].z=trirotatedzx.p[0].z+50;
+      tritranslated.p[1].z=trirotatedzx.p[1].z+50;
+      tritranslated.p[2].z=trirotatedzx.p[2].z+50;
 
       // Use cross product to get surface normal
       var line1=new vec3d(tritranslated.p[1].x-tritranslated.p[0].x, tritranslated.p[1].y-tritranslated.p[0].y, tritranslated.p[1].z-tritranslated.p[0].z);
