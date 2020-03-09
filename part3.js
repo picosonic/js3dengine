@@ -338,19 +338,19 @@ class engine3D
           // Clip it against a planes
           switch (p)
           {
-            case 0:
+            case 0: // Top
               ntristoadd=this.Triangle_ClipAgainstPlane(new vec3d(0, 0, 0), new vec3d(0, 1, 0), test, clipped);
               break;
 
-            case 1:
+            case 1: // Bottom
               ntristoadd=this.Triangle_ClipAgainstPlane(new vec3d(0, ymax-1, 0), new vec3d(0, -1, 0), test, clipped);
               break;
 
-            case 2:
+            case 2: // Left
               ntristoadd=this.Triangle_ClipAgainstPlane(new vec3d(0, 0, 0), new vec3d(1, 0, 0), test, clipped);
               break;
 
-            case 3:
+            case 3: // Right
               ntristoadd=this.Triangle_ClipAgainstPlane(new vec3d(xmax-1, 0, 0), new vec3d(-1, 0, 0), test, clipped);
               break;
           }
@@ -373,7 +373,7 @@ class engine3D
 
   Matrix_MultiplyVector(m, i)
   {
-    var v=new vec3d(0, 0, 0);
+    var v=new vec3d();
 
     v.x = (i.x*m.get(0, 0)) + (i.y*m.get(1, 0)) + (i.z*m.get(2, 0)) + (i.w*m.get(3, 0));
     v.y = (i.x*m.get(0, 1)) + (i.y*m.get(1, 1)) + (i.z*m.get(2, 1)) + (i.w*m.get(3, 1));
