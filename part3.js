@@ -52,11 +52,9 @@ class triangle
 
     if ((a==undefined) && (b==undefined) && (c==undefined))
     {
-      var tri=new vec3d(0, 0, 0);
-
-      this.p[0]=deepclone(tri);
-      this.p[1]=deepclone(tri);
-      this.p[2]=deepclone(tri);
+      this.p[0]=new vec3d();
+      this.p[1]=new vec3d();
+      this.p[2]=new vec3d();
     }
     else
     {
@@ -321,8 +319,52 @@ class engine3D
     for (var i=0; i<trianglestoraster.length; i++)
     {
       // Clip triangles against all four screen edges
-// TODO
-      this.drawtriangle(trianglestoraster[i]);
+      var clipped=new Array(2);
+      var listtriangles=[];
+      var nnewtriangles=1;
+
+      // Add initial triangle
+      listtriangles.push(trianglestoraster[i]);
+
+      for (var p=0; p<4; p++)
+      {
+        var ntristoadd=0;
+        while (nnewtriangles>0)
+        {
+          // Take triangle from front of queue
+          var test=listtriangles.shift();
+          nnewtriangles--;
+
+          // Clip it against a planes
+          switch (p)
+          {
+            case 0:
+              ntristoadd=this.Triangle_ClipAgainstPlane(new vec3d(0, 0, 0), new vec3d(0, 1, 0), test, clipped);
+              break;
+
+            case 1:
+              ntristoadd=this.Triangle_ClipAgainstPlane(new vec3d(0, ymax-1, 0), new vec3d(0, -1, 0), test, clipped);
+              break;
+
+            case 2:
+              ntristoadd=this.Triangle_ClipAgainstPlane(new vec3d(0, 0, 0), new vec3d(1, 0, 0), test, clipped);
+              break;
+
+            case 3:
+              ntristoadd=this.Triangle_ClipAgainstPlane(new vec3d(xmax-1, 0, 0), new vec3d(-1, 0, 0), test, clipped);
+              break;
+          }
+
+          // Clipping may yield a variable number of triangles, so add to back of queue for additional clipping against next plane(s)
+          for (var w=0; w<ntristoadd; w++)
+            listtriangles.push(clipped[w]);
+        }
+
+        nnewtriangles=listtriangles.length;
+      }
+
+      for (var t=0; t<listtriangles.length; t++)
+        this.drawtriangle(listtriangles[t]);
     }
 
     // Ask to be called again on the next frame
@@ -593,7 +635,7 @@ class engine3D
     {
       // All points lie on the inside of plane, so do nothing
       // and allow the triangle to simply pass through
-      out_tri[0]=in_tri;
+      out_tri[0]=deepclone(in_tri);
 
       return 1; // Just the one returned original triangle is valid
     }
@@ -602,7 +644,7 @@ class engine3D
     {
       // Triangle should be clipped. As two points lie outside
       // the plane, the triangle simply becomes a smaller triangle
-      out_tri[0]=in_tri;
+      out_tri[0]=deepclone(in_tri);
 
       // Copy appearance info to new triangle
       out_tri[0].shade=in_tri.shade;
@@ -623,8 +665,8 @@ class engine3D
       // Triangle should be clipped. As two points lie inside the plane,
       // the clipped triangle becomes a "quad". Fortunately, we can
       // represent a quad with two new triangles
-      out_tri[0]=in_tri;
-      out_tri[1]=in_tri;
+      out_tri[0]=deepclone(in_tri);
+      out_tri[1]=deepclone(in_tri);
 
       // Copy appearance info to new triangles
       out_tri[0].shade=in_tri.shade;
@@ -637,7 +679,7 @@ class engine3D
       out_tri[0].p[1]=inside_points[1];
       out_tri[0].p[2]=this.Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[0]);
 
-      // The second triangle is composed of one of he inside points, a
+      // The second triangle is composed of one of the inside points, a
       // new point determined by the intersection of the other side of the 
       // triangle and the plane, and the newly created point above
       out_tri[1].p[0]=inside_points[1];
