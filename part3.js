@@ -184,9 +184,9 @@ class engine3D
     this.ctx.beginPath();
 
     for (var j=0; j<3; j++)
-      this.ctx.lineTo(tri.p[j].x, tri.p[j].y);
+      this.ctx.lineTo(Math.floor(tri.p[j].x), Math.floor(tri.p[j].y));
 
-    this.ctx.lineTo(tri.p[0].x, tri.p[0].y);
+    this.ctx.lineTo(Math.floor(tri.p[0].x), Math.floor(tri.p[0].y));
 
     this.ctx.fill();
     this.ctx.stroke();
@@ -274,7 +274,7 @@ class engine3D
 
         // Dot product between surface normal and light direction
         var dp=Math.max(0.1, this.Vector_DotProduct(lightdir, normal));
-        var equiv=dp*255;
+        var equiv=Math.floor(dp*255);
 
         // Convert World Space --> View Space
         triviewed.p[0]=this.Matrix_MultiplyVector(matview, tritransformed.p[0]);
