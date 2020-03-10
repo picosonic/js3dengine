@@ -40,15 +40,25 @@ class vec3d
     this.y=y||0;
     this.z=z||0;
   }
+
+  clone()
+  {
+    return new vec3d(this.x, this.y, this.z);
+  }
 }
 
 // Simplest 3D primative, contains 3 vertices
 class triangle
 {
-  constructor(a, b, c)
+  constructor(a, b, c, s)
   {
     this.p=new Array(3);
-    this.shade=1; // How illuminated the triangle is 1=100%
+
+    // How illuminated the triangle is 1=100%
+    if (s==undefined)
+      this.shade=1;
+    else
+      this.shade=s;
 
     if ((a==undefined) && (b==undefined) && (c==undefined))
     {
@@ -58,10 +68,15 @@ class triangle
     }
     else
     {
-      this.p[0]=deepclone(a);
-      this.p[1]=deepclone(b);
-      this.p[2]=deepclone(c);
+      this.p[0]=a.clone();
+      this.p[1]=b.clone();
+      this.p[2]=c.clone();
     }
+  }
+
+  clone()
+  {
+    return new triangle(this.p[0], this.p[1], this.p[2], this.shade);
   }
 }
 
@@ -75,7 +90,7 @@ class mesh
 
   addtri(tri)
   {
-    this.tris.push(deepclone(tri));
+    this.tris.push(tri.clone());
   }
 
   addface(x1, y1, z1, x2, y2, z2, x3, y3, z3)
@@ -635,7 +650,7 @@ class engine3D
     {
       // All points lie on the inside of plane, so do nothing
       // and allow the triangle to simply pass through
-      out_tri[0]=deepclone(in_tri);
+      out_tri[0]=in_tri.clone();
 
       return 1; // Just the one returned original triangle is valid
     }
@@ -644,10 +659,7 @@ class engine3D
     {
       // Triangle should be clipped. As two points lie outside
       // the plane, the triangle simply becomes a smaller triangle
-      out_tri[0]=deepclone(in_tri);
-
-      // Copy appearance info to new triangle
-      out_tri[0].shade=in_tri.shade;
+      out_tri[0]=in_tri.clone();
 
       // The inside point is valid, so keep that...
       out_tri[0].p[0]=inside_points[0];
@@ -665,13 +677,9 @@ class engine3D
       // Triangle should be clipped. As two points lie inside the plane,
       // the clipped triangle becomes a "quad". Fortunately, we can
       // represent a quad with two new triangles
-      out_tri[0]=deepclone(in_tri);
-      out_tri[1]=deepclone(in_tri);
+      out_tri[0]=in_tri.clone();
+      out_tri[1]=in_tri.clone();
 
-      // Copy appearance info to new triangles
-      out_tri[0].shade=in_tri.shade;
-      out_tri[1].shade=in_tri.shade;
-      
       // The first triangle consists of the two inside points and a new
       // point determined by the location where one side of the triangle
       // intersects with the plane
