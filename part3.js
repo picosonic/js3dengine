@@ -183,10 +183,12 @@ class engine3D
 
     this.ctx.beginPath();
 
-    for (var j=0; j<3; j++)
+    this.ctx.moveTo(Math.floor(tri.p[0].x), Math.floor(tri.p[0].y));
+
+    for (var j=1; j<3; j++)
       this.ctx.lineTo(Math.floor(tri.p[j].x), Math.floor(tri.p[j].y));
 
-    this.ctx.lineTo(Math.floor(tri.p[0].x), Math.floor(tri.p[0].y));
+    this.ctx.closePath();
 
     this.ctx.fill();
     this.ctx.stroke();
