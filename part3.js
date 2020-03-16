@@ -208,7 +208,7 @@ class engine3D
       this.vcamera.y += (gamepadaxesval[3]*0.01); // Up/Down
     }
 
-    var vforward=this.Vector_Mul(this.vlookdir, gamepadaxesval[1]);
+    var vforward=this.Vector_Mul(this.vlookdir, (gamepadaxesval[1]*0.01));
 
     if (!!(navigator.getGamepads))
     {
@@ -217,7 +217,7 @@ class engine3D
     }
 
     // Set up world transform matrices
-    var matrotz=this.Matrix_MakeRotationZ(this.ftheta*0.1);
+    var matrotz=this.Matrix_MakeRotationZ(this.ftheta*0.5);
     var matrotx=this.Matrix_MakeRotationX(this.ftheta);
 
     var mattrans=this.Matrix_MakeTranslation(0, 0, 50);
@@ -247,7 +247,6 @@ class engine3D
       var tritransformed=new triangle();
       var triviewed=new triangle();
 
-      var tritranslated;
       var tri=this.meshcube.get(i);
 
       tritransformed.p[0]=this.Matrix_MultiplyVector(matworld, tri.p[0]);
@@ -288,7 +287,7 @@ class engine3D
         var nClippedTriangles=this.Triangle_ClipAgainstPlane(new vec3d(0, 0, 0.1), new vec3d(0, 0, 1), triviewed, clipped);
 
         // We may end up with multiple triangles from the clip, so project as required
-        for (var  n=0; n<nClippedTriangles; n++)
+        for (var n=0; n<nClippedTriangles; n++)
         {
           // Project triangles from 3D --> 2D
           triprojected.p[0]=this.Matrix_MultiplyVector(this.matproj, clipped[n].p[0]);
