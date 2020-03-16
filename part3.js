@@ -159,7 +159,7 @@ class engine3D
     this.starttime=null;
 
     this.meshcube=new mesh();
-    this.meshcube.loadfromobject(teapot);
+    this.meshcube.loadfromobject(axis);
 
     this.matproj=this.Matrix_MakeProjection(ffov, faspectratio, fnear, ffar);
 
