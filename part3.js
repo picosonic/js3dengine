@@ -204,8 +204,8 @@ class engine3D
     {
       gamepadscan();
 
-      this.vcamera.x += gamepadaxesval[2];
-      this.vcamera.y += gamepadaxesval[3];
+      this.vcamera.x += (gamepadaxesval[2]*0.01); // Along X axis
+      this.vcamera.y += (gamepadaxesval[3]*0.01); // Up/Down
     }
 
     var vforward=this.Vector_Mul(this.vlookdir, gamepadaxesval[1]);
