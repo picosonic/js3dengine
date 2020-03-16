@@ -431,7 +431,7 @@ class engine3D
     var matrix=new mat4x4();
 
     matrix.set(0, 0, Math.cos(fAngleRad));
-    matrix.set(1, 2, Math.sin(fAngleRad));
+    matrix.set(0, 2, Math.sin(fAngleRad));
     matrix.set(2, 0, -Math.sin(fAngleRad));
     matrix.set(1, 1, 1);
     matrix.set(2, 2, Math.cos(fAngleRad));
