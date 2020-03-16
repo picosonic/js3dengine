@@ -528,9 +528,9 @@ class engine3D
     matrix.set(1, 0, m.get(0, 1)); matrix.set(1, 1, m.get(1, 1)); matrix.set(1, 2, m.get(2, 1)); matrix.set(1, 3, 0);
     matrix.set(2, 0, m.get(0, 2)); matrix.set(2, 1, m.get(1, 2)); matrix.set(2, 2, m.get(2, 2)); matrix.set(2, 3, 0);
 
-    matrix.set(3, 0, (-m.get(3, 0) * matrix.get(0, 0)) + (m.get(3, 1) * matrix.get(1, 0)) + (m.get(3, 2) * matrix.get(2, 0)));
-    matrix.set(3, 1, (-m.get(3, 0) * matrix.get(0, 1)) + (m.get(3, 1) * matrix.get(1, 1)) + (m.get(3, 2) * matrix.get(2, 1)));
-    matrix.set(3, 2, (-m.get(3, 0) * matrix.get(0, 2)) + (m.get(3, 1) * matrix.get(1, 2)) + (m.get(3, 2) * matrix.get(2, 2)));
+    matrix.set(3, 0, -((m.get(3, 0) * matrix.get(0, 0)) + (m.get(3, 1) * matrix.get(1, 0)) + (m.get(3, 2) * matrix.get(2, 0))));
+    matrix.set(3, 1, -((m.get(3, 0) * matrix.get(0, 1)) + (m.get(3, 1) * matrix.get(1, 1)) + (m.get(3, 2) * matrix.get(2, 1))));
+    matrix.set(3, 2, -((m.get(3, 0) * matrix.get(0, 2)) + (m.get(3, 1) * matrix.get(1, 2)) + (m.get(3, 2) * matrix.get(2, 2))));
     matrix.set(3, 3, 1);
 
     return matrix;
