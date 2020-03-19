@@ -155,8 +155,8 @@ class engine3D
     this.canvas=document.getElementById('canvas');
     this.ctx=this.canvas.getContext('2d', { alpha: false });
 
-    // Timestamp for start of render
-    this.starttime=null;
+    // Timestamp for last render
+    this.lasttime=null;
 
     this.meshcube=new mesh();
     this.meshcube.loadfromobject(axis);
@@ -195,32 +195,37 @@ class engine3D
   }
 
   // Draw the whole frame
-  drawframe(timestamp)
+  drawframe(timestamp_milli)
   {
-    if (!this.starttime) this.starttime=timestamp;
-    var progress=(timestamp-this.starttime)/5000;
+    var progress=0;
+
+    // Determine time in seconds since the last drawframe()
+    if (this.lasttime!=null)
+      progress=(timestamp_milli-this.lasttime)/1000;
+
+    this.lasttime=timestamp_milli;
 
     if (!!(navigator.getGamepads))
     {
       gamepadscan();
 
-      this.vcamera.x += (gamepadaxesval[2]*0.01); // Along X axis
-      this.vcamera.y += (gamepadaxesval[3]*0.01); // Up/Down
+      this.vcamera.x += (gamepadaxesval[2]*(progress*8)); // Along X axis
+      this.vcamera.y += (gamepadaxesval[3]*(progress*8)); // Up/Down
     }
 
-    var vforward=this.Vector_Mul(this.vlookdir, (gamepadaxesval[1]*0.01));
+    var vforward=this.Vector_Mul(this.vlookdir, (gamepadaxesval[1]*(progress*8)));
 
     if (!!(navigator.getGamepads))
     {
       this.vcamera=this.Vector_Add(this.vcamera, vforward);
-      this.fyaw+=(gamepadaxesval[0]*0.01);
+      this.fyaw+=(gamepadaxesval[0]*(progress*2));
     }
 
     // Set up world transform matrices
     var matrotz=this.Matrix_MakeRotationZ(this.ftheta*0.5);
     var matrotx=this.Matrix_MakeRotationX(this.ftheta);
 
-    var mattrans=this.Matrix_MakeTranslation(0, 0, 50);
+    var mattrans=this.Matrix_MakeTranslation(0, 0, 150);
 
     var matworld=this.Matrix_MakeIdentity(); // Form World Matrix
     matworld=this.Matrix_MultiplyMatrix(matrotz, matrotx); // Transform by rotation
