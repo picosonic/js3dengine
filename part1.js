@@ -197,7 +197,7 @@ class engine3D
     var progress=(timestamp-this.starttime)/5000;
 
     // Clear screen
-    this.ctx.clearRect(0, 0, canvas.width, canvas.height);
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     // Set up rotation matrices
     var matrotz=new mat4x4();
@@ -311,11 +311,11 @@ function resize()
     top=Math.floor((window.innerHeight/2)-(height/2));
   }
 
-  canvas.style.top=top+"px";
-  canvas.style.left=left+"px";
+  gs.canvas.style.top=top+"px";
+  gs.canvas.style.left=left+"px";
 
-  canvas.style.width=width+"px";
-  canvas.style.height=height+"px";
+  gs.canvas.style.width=width+"px";
+  gs.canvas.style.height=height+"px";
 }
 
 // Called as initial entry point once page is loaded

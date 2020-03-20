@@ -345,11 +345,11 @@ function resize()
     top=Math.floor((window.innerHeight/2)-(height/2));
   }
 
-  canvas.style.top=top+"px";
-  canvas.style.left=left+"px";
+  gs.canvas.style.top=top+"px";
+  gs.canvas.style.left=left+"px";
 
-  canvas.style.width=width+"px";
-  canvas.style.height=height+"px";
+  gs.canvas.style.width=width+"px";
+  gs.canvas.style.height=height+"px";
 }
 
 // Called as initial entry point once page is loaded
