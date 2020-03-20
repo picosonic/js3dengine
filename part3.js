@@ -165,7 +165,7 @@ class engine3D
 
     this.vcamera=new vec3d(0, 0, 0); // Location of camera in world space
     this.vlookdir=new vec3d(0, 0, 0); // Direction vector along the direction camera points
-    this.fyaw=0; // FPS camera rotation in XZ plane
+    this.fyaw=0; // FPS camera rotation in Y axis (XZ plane)
     this.ftheta=0; // Spins world transform
   }
 
@@ -209,8 +209,8 @@ class engine3D
     {
       gamepadscan();
 
-      this.vcamera.x += (gamepadaxesval[2]*(progress*8)); // Along X axis
-      this.vcamera.y += (gamepadaxesval[3]*(progress*8)); // Up/Down
+      this.vcamera.x -= (gamepadaxesval[2]*(progress*8)); // Along X axis
+      this.vcamera.y -= (gamepadaxesval[3]*(progress*8)); // Up/Down
     }
 
     var vforward=this.Vector_Mul(this.vlookdir, (gamepadaxesval[1]*(progress*8)));
@@ -218,14 +218,14 @@ class engine3D
     if (!!(navigator.getGamepads))
     {
       this.vcamera=this.Vector_Add(this.vcamera, vforward);
-      this.fyaw+=(gamepadaxesval[0]*(progress*2));
+      this.fyaw -= (gamepadaxesval[0]*(progress*2));
     }
 
     // Set up world transform matrices
     var matrotz=this.Matrix_MakeRotationZ(this.ftheta*0.5);
     var matrotx=this.Matrix_MakeRotationX(this.ftheta);
 
-    var mattrans=this.Matrix_MakeTranslation(0, 0, 150);
+    var mattrans=this.Matrix_MakeTranslation(0, 0, 60);
 
     var matworld=this.Matrix_MakeIdentity(); // Form World Matrix
     matworld=this.Matrix_MultiplyMatrix(matrotz, matrotx); // Transform by rotation
@@ -236,7 +236,7 @@ class engine3D
     var vtarget=new vec3d(0, 0, 1);
     var matcamerarot=this.Matrix_MakeRotationY(this.fyaw);
     this.vlookdir=this.Matrix_MultiplyVector(matcamerarot, vtarget);
-    this.vtarget=this.Vector_Add(this.vcamera, this.vlookdir);
+    vtarget=this.Vector_Add(this.vcamera, this.vlookdir);
     var matcamera=this.Matrix_PointAt(this.vcamera, vtarget, vup);
 
     // Make view matrix from camera
@@ -334,7 +334,7 @@ class engine3D
     trianglestoraster.sort(function(t1,t2){return ((t2.p[0].z+t2.p[1].z+t2.p[2].z)/3)-((t1.p[0].z+t1.p[1].z+t1.p[2].z)/3)});
 
     // Clear screen
-    this.ctx.clearRect(0, 0, canvas.width, canvas.height);
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     // Rasterise transformed, viewed, projected and sorted visible triangles
     for (var i=0; i<trianglestoraster.length; i++)
@@ -524,7 +524,7 @@ class engine3D
     return matrix;
   }
 
-  Matrix_QuickInverse(m) // Only for Rotation/Translation Matrices
+  Matrix_QuickInverse(m) // Only for Rotation/Translation Matrices, to convert PointAt to LookAt matrix
   {
     var matrix=new mat4x4();
 
@@ -591,7 +591,7 @@ class engine3D
 
   Vector_IntersectPlane(plane_p, plane_n, lineStart, lineEnd)
   {
-    var plane_n=this.Vector_Normalise(plane_n);
+    plane_n=this.Vector_Normalise(plane_n);
     var plane_d=-this.Vector_DotProduct(plane_n, plane_p);
     var ad=this.Vector_DotProduct(lineStart, plane_n);
     var bd=this.Vector_DotProduct(lineEnd, plane_n);
@@ -728,11 +728,11 @@ function resize()
     top=Math.floor((window.innerHeight/2)-(height/2));
   }
 
-  canvas.style.top=top+"px";
-  canvas.style.left=left+"px";
+  this.canvas.style.top=top+"px";
+  this.canvas.style.left=left+"px";
 
-  canvas.style.width=width+"px";
-  canvas.style.height=height+"px";
+  this.canvas.style.width=width+"px";
+  this.canvas.style.height=height+"px";
 }
 
 // Called as initial entry point once page is loaded
