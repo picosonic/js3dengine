@@ -175,6 +175,17 @@ class engine3D
     window.requestAnimationFrame(this.drawframe.bind(this));
   }
 
+  clearinputstate()
+  {
+    keystate=0;
+    padstate=0;
+  }
+
+  ispressed(keybit)
+  {
+    return (((keystate&keybit)!=0) || ((padstate&keybit)!=0));
+  }
+
   // Draw triangle
   drawtriangle(tri)
   {
@@ -198,6 +209,7 @@ class engine3D
   drawframe(timestamp_milli)
   {
     var progress=0;
+    var vforward=null;
 
     // Determine time in seconds since the last drawframe()
     if (this.lasttime!=null)
@@ -211,15 +223,38 @@ class engine3D
 
       this.vcamera.x -= (gamepadaxesval[2]*(progress*8)); // Along X axis
       this.vcamera.y -= (gamepadaxesval[3]*(progress*8)); // Up/Down
-    }
 
-    var vforward=this.Vector_Mul(this.vlookdir, (gamepadaxesval[1]*(progress*8)));
+      vforward=this.Vector_Mul(this.vlookdir, (gamepadaxesval[1]*(progress*8)));
 
-    if (!!(navigator.getGamepads))
-    {
       this.vcamera=this.Vector_Add(this.vcamera, vforward);
       this.fyaw -= (gamepadaxesval[0]*(progress*2));
     }
+
+    if (this.ispressed(2))
+      this.vcamera.y += (progress*8);
+
+    if (this.ispressed(8))
+      this.vcamera.y -= (progress*8);
+
+    if (this.ispressed(1))
+      this.vcamera.x += (progress*8);
+
+    if (this.ispressed(4))
+      this.vcamera.x -= (progress*8);
+
+    vforward=this.Vector_Mul(this.vlookdir, (progress*8));
+
+    if (this.ispressed(32))
+      this.vcamera=this.Vector_Add(this.vcamera, vforward);
+
+    if (this.ispressed(64))
+      this.vcamera=this.Vector_Sub(this.vcamera, vforward);
+
+    if (this.ispressed(128))
+      this.fyaw -= (progress*2);
+
+    if (this.ispressed(256))
+      this.fyaw += (progress*2);
 
     // Set up world transform matrices
     var matrotz=this.Matrix_MakeRotationZ(this.ftheta*0.5);
@@ -743,8 +778,29 @@ function startup()
   resize();
   window.addEventListener("resize", resize);
 
+  document.onkeydown=function(e)
+  {
+    e = e || window.event;
+    updatekeystate(e, 1);
+  };
+
+  document.onkeyup=function(e)
+  {
+    e = e || window.event;
+    updatekeystate(e, 0);
+  };
+
+  // Stop things from being dragged around
+  window.ondragstart=function(e)
+  { 
+    e = e || window.event;
+    e.preventDefault();
+  };
+
   gs.start();
 
   //document.addEventListener("contextmenu", function(e){e.preventDefault();}, false);
 }
 
+// Run the init() once page has loaded
+window.onload=function() { startup(); };

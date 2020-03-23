@@ -4,18 +4,6 @@ var gamepadbuttons=[]; // Button mapping
 var gamepadaxes=[0, 0, 0, 0, 0]; // Axes mapping
 var gamepadaxesval=[0, 0, 0, 0, 0]; // Axes values
 
-// Clear gamepad input state
-function clearinputstate()
-{
-  padstate=0;
-}
-
-// Check if an input is set o gamepad input state
-function ispressed(keybit)
-{
-  return ((padstate&keybit)!=0);
-}
-
 // Scan for any connected gamepads
 function gamepadscan()
 {
