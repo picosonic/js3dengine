@@ -321,10 +321,11 @@ function resize()
 // Called as initial entry point once page is loaded
 function startup()
 {
+  gs=new engine3D;
+
   resize();
   window.addEventListener("resize", resize);
 
-  gs=new engine3D;
   gs.start();
 }
 
