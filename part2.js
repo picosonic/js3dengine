@@ -107,9 +107,9 @@ class mesh
       var v2=obj.f[i][1];
       var v3=obj.f[i][2];
 
-      this.addface(obj.v[v1-1][0], obj.v[v1-1][1], obj.v[v1-1][2],
-                   obj.v[v2-1][0], obj.v[v2-1][1], obj.v[v2-1][2],
-                   obj.v[v3-1][0], obj.v[v3-1][1], obj.v[v3-1][2]);
+      this.addface(obj.v[v1-1][0]*obj.s, obj.v[v1-1][1]*obj.s, obj.v[v1-1][2]*obj.s,
+                   obj.v[v2-1][0]*obj.s, obj.v[v2-1][1]*obj.s, obj.v[v2-1][2]*obj.s,
+                   obj.v[v3-1][0]*obj.s, obj.v[v3-1][1]*obj.s, obj.v[v3-1][2]*obj.s);
     }
   }
 }
