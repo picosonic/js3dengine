@@ -260,7 +260,7 @@ class engine3D
            normal.z * (tritranslated.p[0].z - this.vcamera.z)) < 0)
       {
         // Illumination
-        var lightdir=new vec3d(0, -1, -1); // light comes from above
+        var lightdir=new vec3d(0, -1, -1); // light comes from above viewer
         l=Math.sqrt((lightdir.x*lightdir.x) + (lightdir.y*lightdir.y) + (lightdir.z*lightdir.z));
         lightdir.x/=l;
         lightdir.y/=l;
