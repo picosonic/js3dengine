@@ -511,7 +511,7 @@ class engine3D
   Matrix_MakeProjection(fFovDegrees, fAspectRatio, fNear, fFar)
   {
     var matrix=new mat4x4();
-    var fFovRad=1/Math.tan((fFovDegrees/2)/(180*Math.PI));
+    var fFovRad=1/Math.tan(fFovDegrees*(0.5/180)*Math.PI);
 
     matrix.set(0, 0, fAspectRatio*fFovRad);
     matrix.set(1, 1, fFovRad);
