@@ -31,7 +31,7 @@ class vec3d
     this.x=x||0;
     this.y=y||0;
     this.z=z||0;
-    this.w=1;
+    this.w=1; // Need a 4th term to perform sensible matrix vector multiplication
   }
 
   set(x, y, z)
@@ -260,7 +260,7 @@ class engine3D
     var matrotz=this.Matrix_MakeRotationZ(this.ftheta*0.5);
     var matrotx=this.Matrix_MakeRotationX(this.ftheta);
 
-    var mattrans=this.Matrix_MakeTranslation(0, 0, 60);
+    var mattrans=this.Matrix_MakeTranslation(0, 0, 5);
 
     var matworld=this.Matrix_MakeIdentity(); // Form World Matrix
     matworld=this.Matrix_MultiplyMatrix(matrotz, matrotx); // Transform by rotation
@@ -289,11 +289,13 @@ class engine3D
 
       var tri=this.meshcube.get(i);
 
+      // World Matrix Transform
       tritransformed.p[0]=this.Matrix_MultiplyVector(matworld, tri.p[0]);
       tritransformed.p[1]=this.Matrix_MultiplyVector(matworld, tri.p[1]);
       tritransformed.p[2]=this.Matrix_MultiplyVector(matworld, tri.p[2]);
 
       // Calculate triangle normal
+      // Get lines either side of triangle
       var line1=this.Vector_Sub(tritransformed.p[1], tritransformed.p[0]);
       var line2=this.Vector_Sub(tritransformed.p[2], tritransformed.p[0]);
 
@@ -310,10 +312,11 @@ class engine3D
       if (this.Vector_DotProduct(normal, vCameraRay) < 0)
       {
         // Illumination
-        var lightdir=new vec3d(0, 1, -1); // light comes from above
+        var lightdir=new vec3d(0, 1, -1); // light comes from above viewer
         lightdir=this.Vector_Normalise(lightdir);
 
         // Dot product between surface normal and light direction
+        // How "aligned" are light direction and triangle surface normal?
         var dp=Math.max(0.1, this.Vector_DotProduct(lightdir, normal));
         var equiv=Math.floor(dp*255);
 
@@ -336,7 +339,9 @@ class engine3D
 
           triprojected.shade="rgba("+equiv+","+equiv+","+equiv+",1)";
 
-          // Scale into view
+          // Scale into view, we moved the normalising into cartesian space
+          // out of the matrix.vector function from the previous videos, so
+          // do this manually
           triprojected.p[0]=this.Vector_Div(triprojected.p[0], triprojected.p[0].w);
           triprojected.p[1]=this.Vector_Div(triprojected.p[1], triprojected.p[1].w);
           triprojected.p[2]=this.Vector_Div(triprojected.p[2], triprojected.p[2].w);
