@@ -10,7 +10,6 @@ const fnear=0.1; // Near plane (Z)
 const ffar=1000; // Far plane (Z)
 const ffov=90; // Field of view in degrees
 const faspectratio=ymax/xmax; // Screen aspect ratio
-const ffovrad=1/Math.tan((ffov/2)/(180*Math.PI)); // Tangent of field of view calculation in radians
 
 // Game state is global to prevent it going out of scope
 var gs=null;
@@ -221,8 +220,8 @@ class engine3D
     {
       gamepadscan();
 
-      this.vcamera.x -= (gamepadaxesval[2]*(progress*8)); // Along X axis
-      this.vcamera.y -= (gamepadaxesval[3]*(progress*8)); // Up/Down
+      this.vcamera.x -= (gamepadaxesval[2]*(progress*8)); // Travel along X-axis
+      this.vcamera.y -= (gamepadaxesval[3]*(progress*8)); // Travel up/down
 
       vforward=this.Vector_Mul(this.vlookdir, (gamepadaxesval[1]*(progress*8)));
 
@@ -231,30 +230,30 @@ class engine3D
     }
 
     if (this.ispressed(2))
-      this.vcamera.y += (progress*8);
+      this.vcamera.y += (progress*8); // Travel upwards
 
     if (this.ispressed(8))
-      this.vcamera.y -= (progress*8);
+      this.vcamera.y -= (progress*8); // Travel downwards
 
     if (this.ispressed(1))
-      this.vcamera.x += (progress*8);
+      this.vcamera.x += (progress*8); // Travel along X-axis
 
     if (this.ispressed(4))
-      this.vcamera.x -= (progress*8);
+      this.vcamera.x -= (progress*8); // Travel along X-axis
 
     vforward=this.Vector_Mul(this.vlookdir, (progress*8));
 
     if (this.ispressed(32))
-      this.vcamera=this.Vector_Add(this.vcamera, vforward);
+      this.vcamera=this.Vector_Add(this.vcamera, vforward); // Forwards
 
     if (this.ispressed(64))
-      this.vcamera=this.Vector_Sub(this.vcamera, vforward);
+      this.vcamera=this.Vector_Sub(this.vcamera, vforward); // Backwards
 
     if (this.ispressed(128))
-      this.fyaw -= (progress*2);
+      this.fyaw -= (progress*2); // Turn left
 
     if (this.ispressed(256))
-      this.fyaw += (progress*2);
+      this.fyaw += (progress*2); // Turn right
 
     // Set up world transform matrices
     var matrotz=this.Matrix_MakeRotationZ(this.ftheta*0.5);
