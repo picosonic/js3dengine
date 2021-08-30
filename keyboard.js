@@ -49,36 +49,36 @@ function updatekeystate(e, dir)
     case 65: // A
     case 90: // Z
       if (dir==1)
-        keystate|=32;
-      else
-        keystate&=~32;
-      e.preventDefault();
-      break;
-
-    case 87: // W
-    case 59: // semicolon
-      if (dir==1)
-        keystate|=64;
-      else
-        keystate&=~64;
-      e.preventDefault();
-      break;
-
-    case 68: // D
-    case 88: // X
-      if (dir==1)
         keystate|=128;
       else
         keystate&=~128;
       e.preventDefault();
       break;
 
-    case 83: // S
-    case 190: // dot
+    case 87: // W
+    case 59: // semicolon
+      if (dir==1)
+        keystate|=32;
+      else
+        keystate&=~32;
+      e.preventDefault();
+      break;
+
+    case 68: // D
+    case 88: // X
       if (dir==1)
         keystate|=256;
       else
         keystate&=~256;
+      e.preventDefault();
+      break;
+
+    case 83: // S
+    case 190: // dot
+      if (dir==1)
+        keystate|=64;
+      else
+        keystate&=~64;
       e.preventDefault();
       break;
 
