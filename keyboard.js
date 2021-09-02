@@ -1,5 +1,4 @@
 var keystate=0;
-thiskey=0;
 
 function updatekeystate(e, dir)
 {
@@ -90,7 +89,4 @@ function updatekeystate(e, dir)
     default:
       break;
   }
-
-  if (dir==1)
-    thiskey=e.which;
 }
