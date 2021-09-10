@@ -4,6 +4,7 @@
 // Global constants
 const xmax=1280;
 const ymax=720;
+const debug=true;
 
 // Projection matrix values
 const fnear=0.01; // Near plane (Z)
@@ -385,6 +386,9 @@ class engine3D
   {
     var that=this;
 
+    out_tri[0]=new triangle();
+    out_tri[1]=new triangle();
+
     // Make sure plane normal is indeed normal
     plane_n=this.Vector_Normalise(plane_n);
 
@@ -437,6 +441,8 @@ class engine3D
       // and allow the triangle to simply pass through
       out_tri[0]=in_tri.clone();
 
+      if (debug) out_tri[0].stroke="rgb(255,255,255)";
+
       return 1; // Just the one returned original triangle is valid
     }
 
@@ -472,12 +478,16 @@ class engine3D
       out_tri[0].p[1]=inside_points[1];
       out_tri[0].p[2]=this.Vector_IntersectPlane(plane_p, plane_n, inside_points[0], outside_points[0]);
 
+      if (debug) out_tri[0].shade="rgb(0,255,0)";
+
       // The second triangle is composed of one of the inside points, a
       // new point determined by the intersection of the other side of the 
       // triangle and the plane, and the newly created point above
       out_tri[1].p[0]=inside_points[1];
       out_tri[1].p[1]=out_tri[0].p[2];
       out_tri[1].p[2]=this.Vector_IntersectPlane(plane_p, plane_n, inside_points[1], outside_points[0]);
+
+      if (debug) out_tri[1].shade="rgb(255,0,0)";
 
       return 2; // Return two newly formed triangles which form a quad
     }
@@ -508,7 +518,7 @@ class engine3D
   drawtriangle(tri)
   {
     this.ctx.fillStyle=tri.shade;
-    this.ctx.strokeStyle=tri.shade;
+    this.ctx.strokeStyle=(tri.stroke!=undefined?tri.stroke:tri.shade);
 
     this.ctx.beginPath();
 
