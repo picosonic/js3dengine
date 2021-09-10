@@ -115,15 +115,19 @@ class mesh
 
   loadfromobject(obj)
   {
+    if (obj==undefined) return;
+
+    var scale=obj.s||1;
+
     for (var i=0; i<obj.f.length; i++)
     {
       var v1=obj.f[i][0];
       var v2=obj.f[i][1];
       var v3=obj.f[i][2];
 
-      this.addface(obj.v[v1-1][0], obj.v[v1-1][1], obj.v[v1-1][2],
-                   obj.v[v2-1][0], obj.v[v2-1][1], obj.v[v2-1][2],
-                   obj.v[v3-1][0], obj.v[v3-1][1], obj.v[v3-1][2]);
+      this.addface(obj.v[v1-1][0]*scale, obj.v[v1-1][1]*scale, obj.v[v1-1][2]*scale,
+                   obj.v[v2-1][0]*scale, obj.v[v2-1][1]*scale, obj.v[v2-1][2]*scale,
+                   obj.v[v3-1][0]*scale, obj.v[v3-1][1]*scale, obj.v[v3-1][2]*scale);
     }
   }
 }
@@ -167,7 +171,7 @@ class engine3D
     this.ftheta=0; // Spins world transform
 
     // OnUserCreate() {
-    this.meshcube.loadfromobject(axis);
+    this.meshcube.loadfromobject(stealth);
 
     this.matproj=this.Matrix_MakeProjection(ffov, faspectratio, fnear, ffar);
     // }
