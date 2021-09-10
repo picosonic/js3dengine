@@ -6,9 +6,9 @@ const xmax=1280;
 const ymax=720;
 
 // Projection matrix values
-const fnear=0.1; // Near plane (Z)
+const fnear=0.01; // Near plane (Z)
 const ffar=1000; // Far plane (Z)
-const ffov=90; // Field of view in degrees
+const ffov=60; // Field of view in degrees (60..90, lower value zooms in, higher value makes edges distort more)
 const faspectratio=ymax/xmax; // Screen aspect ratio
 
 // Game state is global to prevent it going out of scope
